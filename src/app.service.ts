@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { cp, readFile, readFileSync, writeFile } from 'fs';
 import { join } from 'path';
 import { spawn } from 'child_process'
+import fs from "node:fs";
+import path from "node:path";
 
 @Injectable()
 export class AppService {
@@ -67,5 +69,30 @@ export class AppService {
     //   }
     //   // console.log(`child process exited with code ${code}`);
     // }); 
+  }
+
+  async buildDirectoryStructure(dirPath: string): Promise<any> {
+    const structure: any = {};
+    const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
+
+    for (const file of files) {
+      const fullPath = path.join(dirPath, file.name);
+
+      if (file.isDirectory()) {
+        const subDirStructure = await this.buildDirectoryStructure(fullPath);
+        if (Object.keys(subDirStructure).length > 0) {
+          structure[file.name] = subDirStructure;
+        }
+      } else if (this.isCppFile(file.name)) {
+        structure[file.name] = null;
+      }
+    }
+
+    return structure;
+  }
+
+  private isCppFile(fileName: string): boolean {
+    const cppExtensions = ['.c', '.cpp', '.h', '.hpp', '.cc'];
+    return cppExtensions.includes(path.extname(fileName).toLowerCase());
   }
 }
