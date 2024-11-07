@@ -29,13 +29,18 @@ export class AppController {
   }
 
   @Post('upload_project')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: FileUploadDto
+  })
   @UseInterceptors(FileInterceptor('file'))
   async upload_project(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
     }
-
+    console.log("hey", file)
     const tempDir = path.join(__dirname, '../temp', Date.now().toString());
+    console.log("dir", tempDir)
     fs.mkdirSync(tempDir, { recursive: true });
 
     const zip = new AdmZip(file.buffer);
