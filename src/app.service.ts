@@ -28,10 +28,10 @@ export class AppService {
    * 
    * @param funcName 
    */
-  analyze(funcName: string) {
+  analyze(fileName: string, funcName: string) {
     var localdir = join(__dirname, '..', '..', 'ast_builer/build/ast');
     console.log("path ", localdir)
-    var arg1 = './data/file.cc'
+    var arg1 = './data/' + fileName
     var arg2 = funcName
     const comp = spawn(localdir, [arg1, arg2]);
     comp.stdout.on('data', (data) => {

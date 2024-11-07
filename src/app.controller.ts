@@ -21,15 +21,16 @@ export class AppController {
   })
   @UseInterceptors(FileInterceptor('file'))
   upload_file(@UploadedFile() file: Express.Multer.File) {
-    console.log(file.originalname, file.buffer.byteLength)
+    console.log(file)
     this.appService.create(file.buffer)
   }
 
   @Get('analyze')
   @ApiQuery({ name: 'file_name', type: 'string' })
+  @ApiQuery({ name: 'func_name', type: 'string' })
   analyze_file(@Query() query: ReqRows) {
     console.log("started analyzing")
-    var content = this.appService.analyze(query.file_name)
+    var content = this.appService.analyze(query.file_name, query.func_name)
     return content
   }
 }
