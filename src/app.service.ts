@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { cp, readFile, readFileSync, writeFile, promises } from 'fs';
-import { extname, join } from 'path';
+import { dirname, extname, join } from 'path';
 import { spawn } from 'child_process'
 import fs from "fs";
 import path from "path";
@@ -31,23 +31,39 @@ export class AppService {
    * @param funcName 
    */
   analyze(fileName: string, funcName: string) {
+    function sleep(ms) {
+      return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+      });
+    }
+
     var localdir = join(__dirname, '..', '..', 'ast_builer/build/ast');
     console.log("path ", localdir)
-    var arg1 = './data/' + fileName
+    var dname = dirname(fileName)
+    var arg1 = join(__dirname, '../temp' + "/" + dname + "/" +fileName)
     var arg2 = funcName
-    const comp = spawn(localdir, [arg1, arg2]);
+    
+    const comp = spawn(localdir, [arg1, arg2], {
+      
+    });
+    console.log(localdir, arg1, arg2)
+    var sout
+    // comp.on('spawn', async () => {
+    //   await sleep(30  )
+    // })
     comp.stdout.on('data', (data) => {
       // BrowserWindow.getFocusedWindow().webContents.send("compOut", data);
       // var error_browser = BrowserWindow.getFocusedWindow().getD document.getElementById('error_container');
       // error_browser.innerText = "";
       // error_browser.innerText = data;
+      sout = data.toString()
       console.log('spawned', data.toString());
     })
     comp.stderr.on('data', (data) => {
       console.error(`stderr: ${data}`);
     });
     
-    comp.on('close', (code) => {
+    comp.on('exit', (code) => {
       if(code == 0) {
         console.log("ENDED PROCESS");
       }
@@ -69,6 +85,8 @@ export class AppService {
     //   }
     //   // console.log(`child process exited with code ${code}`);
     // }); 
+    var obj = {data: sout}
+    return sout
   }
 
   async buildDirectoryStructure(dirPath: string): Promise<any> {

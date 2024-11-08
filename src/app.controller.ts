@@ -39,16 +39,18 @@ export class AppController {
       throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
     }
     console.log("hey", file)
-    const tempDir = path.join(__dirname, '../temp', Date.now().toString());
+    var fname = file.originalname.substring(0, file.originalname.indexOf("."));
+    const tempDir = path.join(__dirname, '../temp', fname);
     console.log("dir", tempDir)
-    fs.mkdirSync(tempDir, { recursive: true });
+    var cerateDir = fs.mkdirSync(tempDir, { recursive: true });
+    console.log("DIR CREATE", cerateDir)
 
     const zip = new AdmZip(file.buffer);
     zip.extractAllTo(tempDir, true);
 
     const directoryStructure = await this.appService.buildDirectoryStructure(tempDir);
 
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    //fs.rmSync(tempDir, { recursive: true, force: true });
 
     return directoryStructure;
   }
