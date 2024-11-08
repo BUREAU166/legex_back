@@ -58,9 +58,10 @@ export class AppController {
   @Get('analyze')
   @ApiQuery({ name: 'file_name', type: 'string' })
   @ApiQuery({ name: 'func_name', type: 'string' })
-  analyze_file(@Query() query: ReqRows) {
+  async analyze_file(@Query() query: ReqRows) {
     console.log("started analyzing")
-    var content = this.appService.analyze(query.file_name, query.func_name)
+    var content = await this.appService.analyze(query.file_name, query.func_name)
+    console.log("content", content)
     return content
   }
 }

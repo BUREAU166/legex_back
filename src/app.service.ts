@@ -30,11 +30,28 @@ export class AppService {
    * 
    * @param funcName 
    */
-  analyze(fileName: string, funcName: string) {
-    function sleep(ms) {
-      return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-      });
+  async analyze(fileName: string, funcName: string) {
+    function streamToString (stream) {
+      console.log("stream")
+      const chunks = [];
+      return new Promise((resolve, reject) => {
+        stream.stdout.on('data', (chunk) => { 
+          console.log("data")
+          chunks.push(Buffer.from(chunk))
+        });
+        stream.stderr.on('data', (err) => {
+          console.log(err)
+          reject(err)
+        });
+        stream.stdout.on('end', () => { 
+          console.log("ended")
+          resolve(Buffer.concat(chunks).toString('utf8')) 
+        });
+        // stream.on('exit', () => { 
+        //   console.log("ended")
+        //   resolve(Buffer.concat(chunks).toString('utf8')) 
+        // });
+      })
     }
 
     var localdir = join(__dirname, '..', '..', 'ast_builer/build/ast');
@@ -51,24 +68,29 @@ export class AppService {
     // comp.on('spawn', async () => {
     //   await sleep(30  )
     // })
-    comp.stdout.on('data', (data) => {
-      // BrowserWindow.getFocusedWindow().webContents.send("compOut", data);
-      // var error_browser = BrowserWindow.getFocusedWindow().getD document.getElementById('error_container');
-      // error_browser.innerText = "";
-      // error_browser.innerText = data;
-      sout = data.toString()
-      console.log('spawned', data.toString());
-    })
-    comp.stderr.on('data', (data) => {
-      console.error(`stderr: ${data}`);
-    });
     
-    comp.on('exit', (code) => {
-      if(code == 0) {
-        console.log("ENDED PROCESS");
-      }
-      console.log(`child process exited with code ${code}`);
-    })
+    //comp.stdout.on('')
+    const result = await streamToString(comp)
+    console.log("res ", result)
+    // const chunks = [];
+    // comp.stdout.on('data', async (data) => {
+    //   // BrowserWindow.getFocusedWindow().webContents.send("compOut", data);
+    //   // var error_browser = BrowserWindow.getFocusedWindow().getD document.getElementById('error_container');
+    //   // error_browser.innerText = "";
+    //   // error_browser.innerText = data;
+    //   chunks.push(Buffer.from(data))
+    //   console.log('spawned', data.toString());
+    // })
+    // comp.stderr.on('data', (data) => {
+    //   console.error(`stderr: ${data}`);
+    // });
+    
+    // comp.on('exit', (code) => {
+    //   if(code == 0) {
+    //     console.log("ENDED PROCESS");
+    //   }
+    //   console.log(`child process exited with code ${code}`);
+    // })
 
     // yard_comp.on('close', (code) => {
     //   if(code == 0)
@@ -85,8 +107,8 @@ export class AppService {
     //   }
     //   // console.log(`child process exited with code ${code}`);
     // }); 
-    var obj = {data: sout}
-    return sout
+    
+    return result
   }
 
   async buildDirectoryStructure(dirPath: string): Promise<any> {
